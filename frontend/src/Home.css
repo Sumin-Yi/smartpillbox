@@ -1,0 +1,211 @@
+/* General Styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+  }
+  
+  /* Ensure full height for the container */
+  html, body {
+    height: 100%;
+  }
+  
+  /* Home Page Container */
+  .home {
+    max-width: 430px; /* Width for iPhone 16 Pro */
+    height: 100vh; /* Full viewport height */
+    margin: 0 auto;
+    background-color: #ffffff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Simulate device border */
+    overflow-y: auto; /* Allow scrolling if content overflows */
+    position: relative; /* For positioning FAB relative to .home */
+  }
+  
+  /* Header Styling */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  .icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+/* Dashboard Section */
+  .dashboard {
+    padding: 20px;
+  }
+  
+  .dashboard h2 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+  }
+  
+  .pill-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .pill-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+  }
+  
+  .pill-info {
+    display: flex;
+    align-items: center;
+  }
+  
+  .pill-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+  }
+  
+  /* Status Styling */
+  .pill-status .status {
+    font-size: 1.2rem;
+    cursor: pointer; /* Indicate that the status is clickable */
+  }
+  
+  .pill-status .status.taken {
+    color: green !important; /* Force green for checkmarks */
+  }
+  
+  .pill-status .status.missed {
+    color: red !important; /* Force red for X marks */
+  }
+  
+  /* Edit Button Styling */
+  .edit-button {
+    display: block; /* Makes button take up its own row */
+    margin: 20px auto 0; /* Center horizontally and add space from the last pill */
+    padding: 10px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .edit-button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Pillbox Grid Section */
+  .pillbox-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Two columns */
+    gap: 20px;
+    width: fit-content; /* Center horizontally by shrinking to content width */
+    margin: 0 auto; /* Center the grid horizontally */
+    position: absolute;
+    bottom: 15%; /* Position near the bottom of the screen */
+    left: 50%;
+
+    transform: translateX(-50%); /* Center the grid horizontally based on its own width */
+  }
+
+  /* Pillbox Wrapper */
+  .pillbox-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Status Light */
+  .status-light {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-bottom: 5px;
+  }
+  
+  .status-light.green {
+    background-color: green;
+  }
+  
+  .status-light.red {
+    background-color: red;
+  }
+
+  .pillbox {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 120px;
+    height: 120px;
+    border-radius: 5px;
+  }
+  
+  .pillbox-icon {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .pillbox.taken {
+    background-color: #e6ffe6;
+  }
+  
+  .pillbox.missed {
+    background-color: #ffe6e6;
+  }
+  
+  .pillbox.pending {
+    background-color: #f0f0f0;
+  }
+  
+  /* Add Pill Button */
+  .AddPill {
+    position: absolute; /* Relative to .home */
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background-color: gray;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+  }
+  
+  /* Mobile-First Adjustments */
+  @media screen and (max-width: 430px) {
+    .home {
+      width: 100%;
+    }
+  
+    body {
+      font-size: 14px;
+    }
+  }
+  
