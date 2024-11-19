@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // 페이지 이동을 위한 훅
 import { ReactComponent as PillIcon } from './icons/pill.svg';
 import { ReactComponent as ProfileIcon } from './icons/profile.svg';
 import { ReactComponent as MenuIcon } from './icons/menu.svg';
@@ -12,14 +13,22 @@ const Home = () => {
     { name: 'Medicine C', status: 'missed' },
   ]);
 
-  const [isEditing, setIsEditing] = useState(false); // Tracks edit mode
+  const [isEditing, setIsEditing] = useState(false);
+  const [pillboxStatus, setPillboxStatus] = useState([
+    'taken', 
+    'taken', 
+    'taken', 
+    'taken'   
+  ]);
+
+  const navigate = useNavigate(); // useNavigate 훅
 
   const toggleEditMode = () => {
     setIsEditing(!isEditing);
   };
 
   const toggleStatus = (index) => {
-    if (!isEditing) return; // Only allow changes in edit mode
+    if (!isEditing) return;
     setPills((prevPills) =>
       prevPills.map((pill, i) =>
         i === index ? { ...pill, status: pill.status === 'taken' ? 'missed' : 'taken' } : pill
@@ -27,22 +36,29 @@ const Home = () => {
     );
   };
 
-  const [pillboxStatus, setPillboxStatus] = useState([
-    'taken',  // Green light
-    'taken',  // Green light
-    'taken',  // Green light
-    'taken'   // Green light (initial state for all)
-  ]);
+  const goToRegisterPage = () => {
+    navigate('/register'); // 이동할 경로
+  };
+
+  const goToLoginPage = () => {
+    navigate('/login'); // 로그인 페이지로 이동
+  };
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // 메뉴 상태 관리
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen); // 메뉴 열고 닫기
+  };
 
   return (
     <div className="home">
       {/* Header */}
       <header className="header">
-        <button className="icon-button">
+        <button className="icon-button" onClick={goToLoginPage}>
           <ProfileIcon className="icon" />
         </button>
         <h1 className="logo">Smart Pillbox</h1>
-        <button className="icon-button">
+        <button className="icon-button" onClick={toggleMenu}>
           <MenuIcon className="icon" />
         </button>
       </header>
@@ -51,29 +67,47 @@ const Home = () => {
       <main className="dashboard">
         <h2>오늘 먹어야 할 약</h2>
         <div className="dashboard-content">
-            <ul className="pill-list">
+          <ul className="pill-list">
             {pills.map((pill, index) => (
-                <li key={index} className="pill-item">
+              <li key={index} className="pill-item">
                 <div className="pill-info">
-                    <PillIcon className="pill-icon" />
-                    <span>{pill.name}</span>
+                  <PillIcon className="pill-icon" />
+                  <span>{pill.name}</span>
                 </div>
                 <div className="pill-status">
-                    <span
+                  <span
                     className={`status ${pill.status === 'taken' ? 'taken' : 'missed'}`}
-                    onClick={() => toggleStatus(index)} // Allow toggling during edit mode
-                    >
+                    onClick={() => toggleStatus(index)}
+                  >
                     {pill.status === 'taken' ? '✔️' : '❌'}
-                    </span>
+                  </span>
                 </div>
-                </li>
+              </li>
             ))}
-            </ul>
-            <button className="edit-button" onClick={toggleEditMode}>
+          </ul>
+          <button className="edit-button" onClick={toggleEditMode}>
             {isEditing ? 'Complete' : 'Edit'}
-            </button>
+          </button>
         </div>
-        </main>
+      </main>
+
+      {/* Menu */}
+      {isMenuOpen && (
+        <div className="menu">
+          <h2 className="menu-title">메뉴</h2>
+          <ul className="menu-list">
+            <li className="menu-item" onClick={() => navigate('/settings')}>
+              설정
+            </li>
+            <li className="menu-item" onClick={() => navigate('/history')}>
+              복용 기록
+            </li>
+            <li className="menu-item" onClick={() => navigate('/search')}>
+              약 검색
+            </li>
+          </ul>
+        </div>
+      )}
 
       {/* Pillbox Status */}
       <div className="pillbox-grid">
@@ -88,7 +122,7 @@ const Home = () => {
       </div>
 
       {/* Add pill */}
-      <button className="AddPill">+</button>
+      <button className="AddPill" onClick={goToRegisterPage}>+</button>
     </div>
   );
 };
