@@ -50,6 +50,10 @@ const Home = () => {
     setIsMenuOpen(!isMenuOpen); // 메뉴 열고 닫기
   };
 
+  const goToInformationPage = (index) => {
+    navigate('/information', { state: { pillIndex: index } }); // 선택한 약통의 index 전달
+  };
+
   return (
     <div className="home">
       {/* Header */}
@@ -112,7 +116,11 @@ const Home = () => {
       {/* Pillbox Status */}
       <div className="pillbox-grid">
         {pillboxStatus.map((status, index) => (
-          <div key={index} className="pillbox-wrapper">
+            <div
+              key={index}
+              className="pillbox-wrapper"
+              onClick={() => goToInformationPage(index)} // 약통 클릭 이벤트
+            >
             <div className={`status-light ${status === 'taken' ? 'green' : 'red'}`}></div>
             <div className="pillbox">
               <img src={pillboxIcon} alt="Pillbox" className="pillbox-icon" />

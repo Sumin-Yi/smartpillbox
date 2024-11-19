@@ -1,0 +1,84 @@
+.information-page {
+    max-width: 430px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .information-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px;
+    border-bottom: 1px solid #ddd;
+    position: relative;
+  }
+  
+  .information-header .icon-button {
+    position: absolute;
+    left: 10px;
+  }
+  
+  .information-header .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    margin: 0 auto;
+  }
+  
+  .content {
+    margin-top: 20px;
+  }
+  
+  .pill-image-placeholder {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .pill-image {
+    width: 120px;
+    height: 120px;
+    background-color: #ccc;
+    border-radius: 50%;
+    margin: 0 auto;
+  }
+  
+  h2 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+  }
+  
+  p {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+  
+  .progress-bar {
+    background-color: #ddd;
+    border-radius: 10px;
+    height: 20px;
+    margin: 20px 0;
+    overflow: hidden;
+  }
+  
+  .progress {
+    height: 100%;
+    background-color: green;
+    transition: width 0.3s ease;
+  }
+  
+  .complete-button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #ccc;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    color: white;
+    cursor: not-allowed;
+  }
+  
