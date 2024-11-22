@@ -1,19 +1,52 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Register.css';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./Register.css";
 
 const Register = () => {
   const navigate = useNavigate(); // useNavigate 훅
 
   // 입력 상태 관리
-  const [medicineName, setMedicineName] = useState('');
-  const [times, setTimes] = useState({ morning: false, lunch: false, evening: false });
-  const [memo, setMemo] = useState('');
-  const [dosage, setDosage] = useState('');
+  const [medicineName, setMedicineName] = useState(""); // 약 이름
+  const [times, setTimes] = useState({ morning: false, lunch: false, evening: false }); // 복용 시간
+  const [memo, setMemo] = useState(""); // 메모
+  const [dosage, setDosage] = useState(""); // 총 복용 횟수
 
   // 홈으로 이동 함수
   const goToHomePage = () => {
-    navigate('/'); // 홈 화면으로 이동
+    navigate("/"); // 홈 화면으로 이동
+  };
+
+  // 서버에 데이터를 전송하는 함수
+  const handleSubmit = async () => {
+    const data = {
+      userId: "user123", // 여기에 실제 로그인된 사용자의 ID를 넣어야 함
+      medicineName,
+      times,
+      dosage,
+      memo,
+    };
+
+    try {
+      const response = await fetch("http://localhost:3000/api/medications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error("약 정보를 저장하는 중 오류가 발생했습니다.");
+      }
+
+      const result = await response.json();
+      console.log(result.message);
+      alert("약 정보가 성공적으로 저장되었습니다!");
+      navigate("/"); // 저장 성공 후 홈으로 이동
+    } catch (error) {
+      console.error(error.message);
+      alert("약 정보를 저장하지 못했습니다. 다시 시도하세요.");
+    }
   };
 
   return (
@@ -24,7 +57,7 @@ const Register = () => {
           취소
         </button>
         <h1 className="header-title">새로운 약</h1>
-        <button className="header-button" onClick={goToHomePage}>
+        <button className="header-button" onClick={handleSubmit}>
           완료
         </button>
       </header>

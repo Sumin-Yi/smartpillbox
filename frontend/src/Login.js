@@ -1,11 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // 페이지 이동을 위한 훅
+import { auth } from "./firebase"; // Firebase 초기화된 auth 가져오기
+import { signInWithEmailAndPassword } from "firebase/auth"; // Firebase 인증
 import { ReactComponent as ProfileIcon } from './icons/profile.svg';
 import { ReactComponent as MenuIcon } from './icons/menu.svg';
 import './Login.css'; // 스타일 파일
 
 const Login = () => {
   const navigate = useNavigate(); // useNavigate 훅
+
+  // 상태 관리
+  const [email, setEmail] = useState(""); // 이메일
+  const [password, setPassword] = useState(""); // 비밀번호
+  const [error, setError] = useState(null); // 오류 메시지
+
+  const handleLogin = async () => {
+    try {
+      // Firebase 이메일/비밀번호 로그인
+      await signInWithEmailAndPassword(auth, email, password);
+      alert("로그인 성공!");
+      navigate("/"); // 로그인 성공 시 홈 화면으로 이동
+    } catch (error) {
+      console.error(error);
+      setError("로그인에 실패했습니다. 이메일 또는 비밀번호를 확인하세요.");
+    }
+  };
 
   const goToHomePage = () => {
     navigate('/'); // 홈 화면으로 이동
@@ -37,16 +56,33 @@ const Login = () => {
 
           {/* Input Fields */}
           <div className="input-group">
-            <label htmlFor="id">ID</label>
-            <input type="text" id="id" placeholder="Enter your ID" />
+            <label htmlFor="email">이메일</label>
+            <input
+              type="email"
+              id="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
           <div className="input-group">
-            <label htmlFor="password">PW</label>
-            <input type="password" id="password" placeholder="Enter your password" />
+            <label htmlFor="password">비밀번호</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </div>
 
           {/* Submit Button */}
-          <button className="login-button">다음</button>
+          <button className="login-button" onClick={handleLogin}>
+            로그인
+          </button>
+
+          {/* Error Message */}
+          {error && <p className="error-message">{error}</p>}
 
           {/* Additional Options */}
           <div className="login-options">
