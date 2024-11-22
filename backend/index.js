@@ -1,42 +1,40 @@
-const express = require('express');
-const dotenv = require('dotenv');
+import dotenv from "dotenv"; // 환경 변수 관리
+import express from "express"; // Express.js
+import { db } from "./lib/firebase.js"; // Firebase 초기화 코드
 
-// 환경 변수 설정
-dotenv.config();
+dotenv.config(); // .env 파일 로드
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+app.use(express.json()); // JSON 요청 파싱
 
-// JSON 데이터를 파싱할 수 있도록 설정
-app.use(express.json());
+// 약 등록 API
+app.post("/api/medications", async (req, res) => {
+  const { userId, medicineName, times, dosage, memo } = req.body;
 
-// 간단한 테스트 엔드포인트
-app.get('/', (req, res) => {
-  res.send('Smart Pill Backend is running');
-});
+  if (!userId || !medicineName || !dosage) {
+    return res.status(400).send("필수 필드가 누락되었습니다.");
+  }
 
-// 약 정보 조회 API
-app.get('/api/medicines', (req, res) => {
-  // 예시 데이터 - 실제 프로젝트에서는 데이터베이스를 사용할 수 있습니다.
-  const medicines = [
-    { id: 1, name: 'Vitamin C', dosage: '500mg', frequency: 'daily' },
-    { id: 2, name: 'Painkiller', dosage: '250mg', frequency: 'as needed' }
-  ];
-  res.json(medicines);
-});
+  try {
+    // Firestore에 저장
+    const medRef = db.collection(`users/${userId}/currentMeds`).doc();
+    await medRef.set({
+      name: medicineName,
+      time: times,
+      frequency: dosage,
+      note: memo,
+      createdAt: new Date().toISOString(),
+    });
 
-// 로그인 엔드포인트 (예시)
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  // 실제 구현에서는 데이터베이스에서 사용자 인증을 해야 합니다.
-  if (username === 'testuser' && password === 'password') {
-    res.json({ message: 'Login successful', token: 'fake-jwt-token' });
-  } else {
-    res.status(401).json({ message: 'Invalid credentials' });
+    res.status(201).send({ message: "약 정보가 성공적으로 저장되었습니다!" });
+  } catch (error) {
+    console.error("Error saving medication:", error);
+    res.status(500).send("약 정보를 저장하는 중에 오류가 발생했습니다.");
   }
 });
 
-// 서버 시작
+// 서버 실행
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
