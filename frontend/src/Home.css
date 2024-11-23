@@ -120,11 +120,12 @@ html, body {
 /* Pillbox Grid Section */
 .pillbox-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Two columns by default */
-  gap: 20px;
+  grid-template-columns: repeat(2, minmax(120px, 1fr)); /* Set a minimum width for grid items */
+  justify-content: center; /* Center the grid items horizontally */
+  gap: 20px; /* Space between items */
   margin: 20px auto; /* Add margin to allow space */
-  width: 100%; /* Ensure it scales responsively */
-  padding: 0 10px; /* Add padding for spacing */
+  width: calc(100% - 120px); /* Add padding to the sides by reducing the grid's width */
+  padding: 0; /* Remove extra padding since width handles it */
 }
 
 /* Pillbox Wrapper */
@@ -178,7 +179,7 @@ html, body {
 
 /* Add Pill Button */
 .AddPill {
-  position: fixed; /* Make it fixed to stay visible while scrolling */
+  position: absolute; /* Make it fixed to stay visible while scrolling */
   bottom: 20px;
   right: 20px;
   width: 50px;
