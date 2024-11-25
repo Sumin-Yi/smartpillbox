@@ -1,10 +1,12 @@
 import dotenv from "dotenv"; // 환경 변수 관리
 import express from "express"; // Express.js
 import { db } from "./lib/firebase.js"; // Firebase 초기화 코드
+import cors from "cors";
 
 dotenv.config(); // .env 파일 로드
 
-const app = express();
+const app = express(); // Express 애플리케이션 초기화
+app.use(cors()); // CORS 설정
 app.use(express.json()); // JSON 요청 파싱
 
 // 약 등록 API
