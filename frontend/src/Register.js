@@ -19,7 +19,7 @@ const Register = () => {
   // 서버에 데이터를 전송하는 함수
   const handleSubmit = async () => {
     const data = {
-      userId: "user123", // 여기에 실제 로그인된 사용자의 ID를 넣어야 함
+      userId: "test1@gmail.com", // 여기에 실제 로그인된 사용자의 ID를 넣어야 함
       medicineName,
       times,
       dosage,
