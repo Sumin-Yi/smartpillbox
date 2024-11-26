@@ -1,68 +1,85 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // 페이지 이동을 위한 훅
-import { ReactComponent as PillIcon } from './icons/pill.svg';
-import { ReactComponent as ProfileIcon } from './icons/profile.svg';
-import { ReactComponent as MenuIcon } from './icons/menu.svg';
-import pillboxIcon from './icons/pillbox.svg'; 
-import './Home.css';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom"; // 페이지 이동 및 상태 관리
+import { ReactComponent as PillIcon } from "./icons/pill.svg";
+import { ReactComponent as ProfileIcon } from "./icons/profile.svg";
+import { ReactComponent as MenuIcon } from "./icons/menu.svg";
+import pillboxIcon from "./icons/pillbox.svg";
+import "./Home.css";
 
 const Home = () => {
   const [pills, setPills] = useState([
-    { name: 'Medicine A', status: 'taken' },
-    { name: 'Medicine B', status: 'pending' },
-    { name: 'Medicine C', status: 'missed' },
+    { name: "Medicine A", status: "taken" },
+    { name: "Medicine B", status: "pending" },
+    { name: "Medicine C", status: "missed" },
   ]);
 
-  const [isEditing, setIsEditing] = useState(false);
   const [pillboxStatus, setPillboxStatus] = useState([
-    'taken', 
-    'taken', 
-    'taken', 
-    'taken'   
+    "empty", // 1번 약통
+    "empty", // 2번 약통
+    "empty", // 3번 약통
+    "empty", // 4번 약통
   ]);
 
-  const navigate = useNavigate(); // useNavigate 훅
+  const navigate = useNavigate(); // 페이지 이동을 위한 훅
+  const location = useLocation(); // 다른 페이지에서 전달된 상태 확인
 
-  const toggleEditMode = () => {
-    setIsEditing(!isEditing);
+  // Register 페이지로 약통 번호와 함께 이동
+  const goToRegisterPage = (index) => {
+    if (pillboxStatus[index] === "empty") {
+      navigate("/register", { state: { pillboxIndex: index + 1 } }); // 약통 번호 전달
+    } else {
+      navigate("/information", { state: { pillboxIndex: index + 1 } }); // 약 정보는 넘기지 않음
+    }
   };
+  
 
-  const toggleStatus = (index) => {
-    if (!isEditing) return;
-    setPills((prevPills) =>
-      prevPills.map((pill, i) =>
-        i === index ? { ...pill, status: pill.status === 'taken' ? 'missed' : 'taken' } : pill
-      )
+  // 약통 상태 업데이트
+  const updatePillboxStatus = (index, newStatus) => {
+    setPillboxStatus((prevStatus) =>
+      prevStatus.map((status, i) => (i === index ? newStatus : status))
     );
   };
 
-  const goToRegisterPage = () => {
-    navigate('/register'); // 이동할 경로
-  };
+  // 약 등록 후 돌아왔을 때 상태 업데이트
+  useEffect(() => {
+    if (location.state?.updatedPillboxIndex) {
+      const updatedIndex = location.state.updatedPillboxIndex - 1; // 0부터 시작하는 인덱스
+      updatePillboxStatus(updatedIndex, "red"); // 약 등록된 약통 상태를 'red'로 변경
+    }
+  }, [location.state]);
 
-  const goToLoginPage = () => {
-    navigate('/login'); // 로그인 페이지로 이동
-  };
+  // 초기 약통 상태를 Firestore에서 가져오기
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/medications?userId=test1@gmail.com");
+        const medications = await response.json();
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // 메뉴 상태 관리
+        // Firestore 데이터를 기반으로 약통 상태 업데이트
+        const updatedStatus = pillboxStatus.map((status, index) => {
+          const pillboxIndex = index + 1; // 약통 번호 (1부터 시작)
+          const isOccupied = medications.some((med) => med.pillboxIndex === pillboxIndex);
+          return isOccupied ? "red" : "empty"; // 데이터가 있으면 'red', 없으면 'empty'
+        });
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen); // 메뉴 열고 닫기
-  };
+        setPillboxStatus(updatedStatus);
+      } catch (error) {
+        console.error("약 정보 가져오기 실패:", error);
+      }
+    };
 
-  const goToInformationPage = (index) => {
-    navigate('/information', { state: { pillIndex: index } }); // 선택한 약통의 index 전달
-  };
+    fetchData();
+  }, []);
 
   return (
     <div className="home">
       {/* Header */}
       <header className="header">
-        <button className="icon-button" onClick={goToLoginPage}>
+        <button className="icon-button" onClick={() => navigate("/login")}>
           <ProfileIcon className="icon" />
         </button>
         <h1 className="logo">Smart Pillbox</h1>
-        <button className="icon-button" onClick={toggleMenu}>
+        <button className="icon-button">
           <MenuIcon className="icon" />
         </button>
       </header>
@@ -80,57 +97,40 @@ const Home = () => {
                 </div>
                 <div className="pill-status">
                   <span
-                    className={`status ${pill.status === 'taken' ? 'taken' : 'missed'}`}
-                    onClick={() => toggleStatus(index)}
+                    className={`status ${pill.status === "taken" ? "taken" : "missed"}`}
                   >
-                    {pill.status === 'taken' ? '✔️' : '❌'}
+                    {pill.status === "taken" ? "✔️" : "❌"}
                   </span>
                 </div>
               </li>
             ))}
           </ul>
-          <button className="edit-button" onClick={toggleEditMode}>
-            {isEditing ? 'Complete' : 'Edit'}
-          </button>
         </div>
       </main>
-
-      {/* Menu */}
-      {isMenuOpen && (
-        <div className="menu">
-          <h2 className="menu-title">메뉴</h2>
-          <ul className="menu-list">
-            <li className="menu-item" onClick={() => navigate('/settings')}>
-              설정
-            </li>
-            <li className="menu-item" onClick={() => navigate('/history')}>
-              복용 기록
-            </li>
-            <li className="menu-item" onClick={() => navigate('/search')}>
-              약 검색
-            </li>
-          </ul>
-        </div>
-      )}
 
       {/* Pillbox Status */}
       <div className="pillbox-grid">
         {pillboxStatus.map((status, index) => (
+          <div
+            key={index}
+            className="pillbox-wrapper"
+            onClick={() => goToRegisterPage(index)}
+          >
             <div
-              key={index}
-              className="pillbox-wrapper"
-              onClick={() => goToInformationPage(index)} // 약통 클릭 이벤트
-            >
-            <div className={`status-light ${status === 'taken' ? 'green' : 'red'}`}></div>
+              className={`status-light ${
+                status === "red"
+                  ? "red"
+                  : status === "empty"
+                  ? "gray"
+                  : ""
+              }`}
+            ></div>
             <div className="pillbox">
               <img src={pillboxIcon} alt="Pillbox" className="pillbox-icon" />
             </div>
           </div>
         ))}
       </div>
-
-      {/* Add pill */}
-      <button className="AddPill" onClick={goToRegisterPage}>+</button>
     </div>
   );
 };

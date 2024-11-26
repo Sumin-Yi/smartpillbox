@@ -1,89 +1,102 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { db } from './firebase'; // Import Firestore instance
-import { doc, getDoc } from 'firebase/firestore'; // Firestore methods
-import './Information.css'; // CSS file
+
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { getAuth } from "firebase/auth"; // Firebase Auth 가져오기
+import "./Information.css";
 
 const Information = () => {
-  const location = useLocation(); // Access data passed via navigation
+  const location = useLocation();
   const navigate = useNavigate();
 
-  // Extract pill index from the navigation state
-  const pillIndex = location.state?.pillIndex || 0; // Default to index 0 if none provided
-
-  // State to hold pill data
-  const [pill, setPill] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Replace with the current user's ID or email
-  const userId = "test1@gmail.com"; // This should be dynamically set based on the logged-in user
+  const [pill, setPill] = useState(null); // 약 정보 상태
+  const pillboxIndex = location.state?.pillboxIndex; // 넘겨받은 pillbox 번호
+  const auth = getAuth(); // Firebase Auth 인스턴스
 
   useEffect(() => {
     const fetchPillData = async () => {
       try {
-        setLoading(true);
-
-        // Reference to the pillbox document in Firestore
-        const pillDocRef = doc(db, 'users', userId, 'currentMeds', `pillbox_${pillIndex + 1}`);
-        const pillDoc = await getDoc(pillDocRef);
-
-        if (pillDoc.exists()) {
-          setPill(pillDoc.data());
-        } else {
-          setError('No data found for this pill.');
+        const currentUser = auth.currentUser; // 현재 로그인된 사용자 가져오기
+        if (!currentUser) {
+          alert("로그인이 필요합니다.");
+          navigate("/login"); // 로그인 페이지로 이동
+          return;
         }
-      } catch (err) {
-        console.error('Error fetching pill data:', err);
-        setError('Failed to fetch pill data.');
-      } finally {
-        setLoading(false);
+
+        const userId = currentUser.email; // 현재 사용자의 이메일을 userId로 사용
+        console.log("Fetching pill data for user:", userId);
+
+        const response = await fetch(
+          `http://localhost:3000/api/medication?userId=${userId}&pillboxIndex=${pillboxIndex}`
+        );
+
+        if (!response.ok) {
+          throw new Error("약 정보를 가져오는 데 실패했습니다.");
+        }
+
+        const data = await response.json();
+        setPill(data); // 상태에 데이터 저장
+      } catch (error) {
+        console.error("Error fetching pill data:", error);
+        alert("약 정보를 가져오는 중 오류가 발생했습니다.");
+        navigate(-1); // 오류 발생 시 이전 페이지로 이동
       }
     };
 
-    fetchPillData();
-  }, [pillIndex, userId]);
+    if (pillboxIndex) {
+      fetchPillData(); // API 호출
+    }
+  }, [auth, pillboxIndex, navigate]);
 
-  if (loading) {
-    return <p>Loading...</p>;
-  }
+  if (!pill) {
+    return <div>Loading...</div>; // 데이터를 불러오는 동안 표시
 
-  if (error) {
-    return <p>{error}</p>;
+
   }
 
   return (
     <div className="information-page">
-      {/* Header */}
+      {/* 약 정보 표시 */}
       <header className="information-header">
         <button className="icon-button" onClick={() => navigate(-1)}>
           &lt; Back
         </button>
         <h1 className="logo">약 세부사항</h1>
       </header>
-
-      {/* Content */}
-      <main className="content">
-        <div className="pill-image-placeholder">
-          <div className="pill-image"></div>
-        </div>
-        <h2>{pill.name}</h2>
-        <p><strong>예상 복용 완료일:</strong> {pill.createdAt}</p>
-        <p><strong>복용 방법:</strong> {pill.note}</p>
-        <p><strong>복용 빈도:</strong> {pill.frequency}</p>
         <p>
-          <strong>복용 시간:</strong> 
-          {pill.time.morning && " 아침"}
-          {pill.time.lunch && " 점심"}
-          {pill.time.evening && " 저녁"}
+          <strong>예상 복용 완료일:</strong> {pill.createdAt || "알 수 없음"}
         </p>
-        
+        <p>
+          <strong>복용 방법:</strong> {pill.instructions || "알 수 없음"}
+        </p>
+        <p>
+          <strong>메모:</strong> {pill.note || "알 수 없음"}
+        </p>
+        <p>
+          <strong>총 복용 횟수:</strong> {pill.frequency || "알 수 없음"}번
+        </p>
+        <p>
+          <strong>복용 시간:</strong>{" "}
+          {pill.time?.morning && "아침 "}
+          {pill.time?.lunch && "점심 "}
+          {pill.time?.evening && "저녁 "}
+        </p>
+        <p>
+          <strong>남은 횟수:</strong> {pill.remaining || 0}번
+        </p>
+
         {/* Progress Bar */}
         <div className="progress-bar">
-          <div className="progress" style={{ width: `${pill.frequency}%` }}></div>
+          <div
+            className="progress"
+            style={{ width: `${pill.percentage || 0}%` }}
+          ></div>
+
         </div>
 
-        <button className="complete-button" disabled>복용완료하기</button>
+        {/* 복용 완료 버튼 */}
+        <button className="complete-button" onClick={() => {/* 복용 완료 처리 */}}>
+          복용 완료하기
+        </button>
       </main>
     </div>
   );
