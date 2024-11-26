@@ -1,9 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { getAuth } from "firebase/auth";
 import "./Register.css";
 
 const Register = () => {
-  const navigate = useNavigate(); // useNavigate 훅
+  const navigate = useNavigate(); // 페이지 이동을 위한 훅
+  const location = useLocation(); // 전달받은 state 접근
+  const pillboxIndex = location.state?.pillboxIndex || 0; // 약통 번호 (기본값 0)
 
   // 입력 상태 관리
   const [medicineName, setMedicineName] = useState(""); // 약 이름
@@ -18,8 +21,19 @@ const Register = () => {
 
   // 서버에 데이터를 전송하는 함수
   const handleSubmit = async () => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      alert("로그인 상태가 아닙니다. 로그인 페이지로 이동합니다.");
+      navigate("/login"); // 로그인 페이지로 이동
+      return;
+    }
+
+    // 서버로 전송할 데이터
     const data = {
-      userId: "test1@gmail.com", // 여기에 실제 로그인된 사용자의 ID를 넣어야 함
+      userId: currentUser.email, // 현재 로그인된 사용자의 이메일
+      pillboxIndex, // 약통 번호 추가
       medicineName,
       times,
       dosage,

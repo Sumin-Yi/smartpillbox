@@ -151,6 +151,10 @@ html, body {
   background-color: red;
 }
 
+.status-light.gray {
+  background-color: gray;
+}
+
 .pillbox {
   display: flex;
   justify-content: center;
@@ -303,5 +307,6 @@ html, body {
 .home {
   position: relative;
 }
+
 
 }
