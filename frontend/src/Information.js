@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth"; // Firebase Auth 가져오기
@@ -48,6 +49,8 @@ const Information = () => {
 
   if (!pill) {
     return <div>Loading...</div>; // 데이터를 불러오는 동안 표시
+
+
   }
 
   return (
@@ -59,11 +62,6 @@ const Information = () => {
         </button>
         <h1 className="logo">약 세부사항</h1>
       </header>
-      <main className="content">
-        <div className="pill-image-placeholder">
-          <div className="pill-image"></div>
-        </div>
-        <h2>{pill.name}</h2>
         <p>
           <strong>예상 복용 완료일:</strong> {pill.createdAt || "알 수 없음"}
         </p>
@@ -92,6 +90,7 @@ const Information = () => {
             className="progress"
             style={{ width: `${pill.percentage || 0}%` }}
           ></div>
+
         </div>
 
         {/* 복용 완료 버튼 */}
