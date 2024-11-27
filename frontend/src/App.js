@@ -6,6 +6,7 @@ import Register from './Register';
 import Information from './Information';
 import History from './History'
 import InformationHistory from "./InformationHistory";
+import Notification from "./Notification";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/information" element={<Information />} />
         <Route path='/history' element={<History />} />
         <Route path="/information-history" element={<InformationHistory />} />
+        <Route path="/notification" element={<Notification />} />
       </Routes>
     </Router>
   );

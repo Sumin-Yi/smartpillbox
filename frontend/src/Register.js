@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { getAuth } from "firebase/auth";
+import { getAuth } from "firebase/auth"; // Firebase Auth 가져오기
 import "./Register.css";
 
 const Register = () => {
@@ -34,10 +34,12 @@ const Register = () => {
     const data = {
       userId: currentUser.email, // 현재 로그인된 사용자의 이메일
       pillboxIndex, // 약통 번호 추가
-      medicineName,
-      times,
-      dosage,
-      memo,
+      medicineName, // 약 이름
+      times, // 복용 시간
+      dosage, // 총 복용 횟수
+      memo, // 메모
+      timesTaken: 0, // 복용 횟수를 0으로 초기화
+      isConsumed: false, // 복용 여부를 false로 초기화
     };
 
     try {

@@ -32,7 +32,31 @@ const Information = () => {
         }
 
         const data = await response.json();
-        setPill(data); // 상태에 데이터 저장
+
+        // Calculate additional fields
+        const timesTaken = data.timesTaken || 0; // 총 복용 횟수 (기본값: 0)
+        const frequency = data.frequency ? Number(data.frequency) : 0; // 총 복용해야 할 횟수
+        const remaining = frequency - timesTaken; // 남은 횟수 계산
+        const percentage = frequency > 0 ? (timesTaken / frequency) * 100 : 0; // 진행률 계산
+
+        // Calculate the expected completion date
+        const dailyDoses = [data.time.morning, data.time.lunch, data.time.evening].filter(Boolean).length; // Count the number of `true` values
+        const remainingDays = dailyDoses > 0 ? Math.ceil(remaining / dailyDoses) : 0; // Calculate the remaining days and round up
+
+        // Calculate the expected date by adding remainingDays to the current date
+        const currentDate = new Date();
+        currentDate.setDate(currentDate.getDate() + remainingDays); // Add remaining days to the current date
+        const completionDate = currentDate.toISOString().split('T')[0]; // Format as "YYYY-MM-DD"
+
+        // Set pill data including calculated fields
+        setPill({
+          ...data,
+          timesTaken,
+          remaining,
+          percentage,
+          remainingDays, // Add the calculated remaining days to the pill data
+          completionDate, // Add the calculated completion date
+        });
       } catch (error) {
         console.error("Error fetching pill data:", error);
         alert("약 정보를 가져오는 중 오류가 발생했습니다.");
@@ -92,16 +116,16 @@ const Information = () => {
         </div>
         <h2>{pill.name}</h2>
         <p>
-          <strong>예상 복용 완료일:</strong> {pill.createdAt || "알 수 없음"}
+          <strong>예상 복용 완료일:</strong> {pill.completionDate.replace(/-/g, ".")} {/* Format as YYYY.MM.DD */}
         </p>
         <p>
-          <strong>복용 방법:</strong> {pill.instructions || "알 수 없음"}
+          <strong>복용 방법:</strong> {pill.instructions || "-"}
         </p>
         <p>
-          <strong>메모:</strong> {pill.note || "알 수 없음"}
+          <strong>메모:</strong> {pill.note || "-"}
         </p>
         <p>
-          <strong>총 복용 횟수:</strong> {pill.frequency || "알 수 없음"}번
+          <strong>총 복용 횟수:</strong> {pill.frequency || "-"}번
         </p>
         <p>
           <strong>복용 시간:</strong>{" "}
@@ -117,9 +141,15 @@ const Information = () => {
         <div className="progress-bar">
           <div
             className="progress"
-            style={{ width: `${pill.percentage || 0}%` }}
+            style={{
+              width: `${pill.percentage || 0}%`,
+              backgroundColor: "green",
+            }}
           ></div>
         </div>
+        <p className="progress-caption">
+          ({pill.percentage || 0}% 복용 완료했어요!)
+        </p>
 
         {/* 복용 완료 버튼 */}
         <button className="complete-button" onClick={handleComplete}>

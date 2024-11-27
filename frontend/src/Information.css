@@ -56,19 +56,35 @@
     margin-bottom: 10px;
   }
   
+  .progress-bar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers the caption horizontally */
+    margin-top: 20px; /* Add spacing if needed */
+  }
+  
   .progress-bar {
-    background-color: #ddd;
-    border-radius: 10px;
+    width: 100%; /* Adjust to fit your layout */
     height: 20px;
-    margin: 20px 0;
+    background-color: #e0e0e0; /* Light gray for the background */
+    border-radius: 10px;
     overflow: hidden;
+    position: relative;
   }
   
   .progress {
     height: 100%;
     background-color: green;
-    transition: width 0.3s ease;
+    transition: width 0.3s ease; /* Smooth progress bar animation */
   }
+  
+  .progress-caption {
+    margin-top: 10px; /* Add spacing between the bar and caption */
+    font-size: 14px; /* Adjust font size */
+    font-weight: bold;
+    text-align: center; /* Ensures text is centered */
+  }
+  
   
   .complete-button {
     display: block;
