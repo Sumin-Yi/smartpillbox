@@ -99,3 +99,93 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// 복용 완료 처리 API
+app.post("/api/complete-medication", async (req, res) => {
+  const { userId, pillboxIndex } = req.body;
+
+  if (!userId || !pillboxIndex) {
+    return res.status(400).send("필수 필드가 누락되었습니다.");
+  }
+
+  try {
+    // 현재 약 정보 가져오기
+    const medRef = db
+      .collection(`users/${userId}/currentMeds`)
+      .doc(`pillbox_${pillboxIndex}`);
+    const medSnap = await medRef.get();
+
+    if (!medSnap.exists) {
+      return res.status(404).send("해당 약 정보를 찾을 수 없습니다.");
+    }
+
+    const medication = medSnap.data();
+
+    // 복용 완료 처리 - history로 이동
+    const historyRef = db.collection(`users/${userId}/history`).doc();
+    await historyRef.set({
+      ...medication,
+      completedAt: new Date().toISOString(), // 완료 시간 추가
+    });
+
+    // currentMeds에서 제거
+    await medRef.delete();
+
+    res.status(200).send({ message: "복용 완료 처리되었습니다." });
+  } catch (error) {
+    console.error("Error completing medication:", error);
+    res.status(500).send("복용 완료 처리 중 오류가 발생했습니다.");
+  }
+});
+
+// 복용 기록 가져오기 API
+app.get("/api/history", async (req, res) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).send("사용자 ID가 필요합니다.");
+  }
+
+  try {
+    const historySnapshot = await db.collection(`users/${userId}/history`).get();
+
+    if (historySnapshot.empty) {
+      console.log(`No history found for userId: ${userId}`);
+      return res.status(404).send("복용 기록이 없습니다.");
+    }
+
+    const history = historySnapshot.docs.map((doc) => ({
+      id: doc.id, // 문서 ID를 포함
+      ...doc.data(),
+    }));
+
+    res.status(200).json(history);
+  } catch (error) {
+    console.error("Error fetching history:", error);
+    res.status(500).send("복용 기록을 가져오는 중 오류가 발생했습니다.");
+  }
+});
+
+// 특정 복용 기록 약 정보 가져오기 API
+app.get("/api/history-medication", async (req, res) => {
+  const { userId, pillId } = req.query;
+
+  if (!userId || !pillId) {
+    return res.status(400).send("필수 필드가 누락되었습니다.");
+  }
+
+  try {
+    const pillRef = db.collection(`users/${userId}/history`).doc(pillId);
+    const pillSnap = await pillRef.get();
+
+    if (!pillSnap.exists) {
+      console.log(`Pill with ID ${pillId} not found for userId: ${userId}`);
+      return res.status(404).send("약 정보를 찾을 수 없습니다.");
+    }
+
+    res.status(200).json({ id: pillSnap.id, ...pillSnap.data() });
+  } catch (error) {
+    console.error("Error fetching medication:", error);
+    res.status(500).send("약 정보를 가져오는 중 오류가 발생했습니다.");
+  }
+});

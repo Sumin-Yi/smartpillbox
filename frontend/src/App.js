@@ -5,6 +5,7 @@ import Login from './Login';
 import Register from './Register';
 import Information from './Information';
 import History from './History'
+import InformationHistory from "./InformationHistory";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/information" element={<Information />} />
         <Route path='/history' element={<History />} />
+        <Route path="/information-history" element={<InformationHistory />} />
       </Routes>
     </Router>
   );

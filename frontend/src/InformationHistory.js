@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth"; // Firebase Auth 가져오기
-import "./Information.css";
+import "./Information.css"; // 동일한 스타일 사용 가능
 
-const Information = () => {
+const InformationHistory = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
   const [pill, setPill] = useState(null); // 약 정보 상태
-  const pillboxIndex = location.state?.pillboxIndex; // 넘겨받은 pillbox 번호
+  const pillId = location.state?.pillId; // History에서 전달받은 pillId
   const auth = getAuth(); // Firebase Auth 인스턴스
 
   useEffect(() => {
@@ -21,10 +21,10 @@ const Information = () => {
           return;
         }
 
-        const userId = currentUser.email; // 현재 사용자의 이메일을 userId로 사용
+        const userId = currentUser.email; // 현재 사용자의 이메일
 
         const response = await fetch(
-          `http://localhost:3000/api/medication?userId=${userId}&pillboxIndex=${pillboxIndex}`
+          `http://localhost:3000/api/history-medication?userId=${userId}&pillId=${pillId}`
         );
 
         if (!response.ok) {
@@ -32,7 +32,7 @@ const Information = () => {
         }
 
         const data = await response.json();
-        setPill(data); // 상태에 데이터 저장
+        setPill(data); // 약 정보 상태에 저장
       } catch (error) {
         console.error("Error fetching pill data:", error);
         alert("약 정보를 가져오는 중 오류가 발생했습니다.");
@@ -40,39 +40,10 @@ const Information = () => {
       }
     };
 
-    if (pillboxIndex) {
-      fetchPillData(); // API 호출
+    if (pillId) {
+      fetchPillData(); // pillId가 존재할 때만 API 호출
     }
-  }, [auth, pillboxIndex, navigate]);
-
-  const handleComplete = async () => {
-    try {
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        alert("로그인이 필요합니다.");
-        navigate("/login");
-        return;
-      }
-
-      const userId = currentUser.email;
-
-      const response = await fetch("http://localhost:3000/api/complete-medication", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, pillboxIndex }),
-      });
-
-      if (!response.ok) {
-        throw new Error("복용 완료 처리 중 오류가 발생했습니다.");
-      }
-
-      alert("복용 완료되었습니다!");
-      navigate(-1); // 이전 페이지로 이동
-    } catch (error) {
-      console.error("Error completing medication:", error);
-      alert("복용 완료 처리 중 오류가 발생했습니다.");
-    }
-  };
+  }, [auth, pillId, navigate]);
 
   if (!pill) {
     return <div>Loading...</div>; // 데이터를 불러오는 동안 표시
@@ -84,7 +55,7 @@ const Information = () => {
         <button className="icon-button" onClick={() => navigate(-1)}>
           &lt; Back
         </button>
-        <h1 className="logo">약 세부사항</h1>
+        <h1 className="logo">복용 기록 세부사항</h1>
       </header>
       <main className="content">
         <div className="pill-image-placeholder">
@@ -92,7 +63,7 @@ const Information = () => {
         </div>
         <h2>{pill.name}</h2>
         <p>
-          <strong>예상 복용 완료일:</strong> {pill.createdAt || "알 수 없음"}
+          <strong>복용 완료일:</strong> {pill.completedAt || "알 수 없음"}
         </p>
         <p>
           <strong>복용 방법:</strong> {pill.instructions || "알 수 없음"}
@@ -120,14 +91,9 @@ const Information = () => {
             style={{ width: `${pill.percentage || 0}%` }}
           ></div>
         </div>
-
-        {/* 복용 완료 버튼 */}
-        <button className="complete-button" onClick={handleComplete}>
-          복용 완료하기
-        </button>
       </main>
     </div>
   );
 };
 
-export default Information;
+export default InformationHistory;
