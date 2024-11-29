@@ -71,6 +71,7 @@ app.get("/api/medication", async (req, res) => {
   }
 });
 
+
 /**
  * 복용 완료 처리 API
  * 사용자가 약을 복용 완료했을 때 호출되는 API
@@ -94,16 +95,22 @@ app.post("/api/complete-medication", async (req, res) => {
 
     const medication = medSnap.data();
 
-    // Increment timesTaken
+    // `timesTaken` 값을 증가시키고 `isConsumed` 상태를 true로 설정
     const updatedTimesTaken = (medication.timesTaken || 0) + 1;
 
-    await medRef.update({
-      isConsumed: true, // 복용 상태를 true로 설정
-      timesTaken: updatedTimesTaken, // 복용 횟수 증가
+    // `history` 컬렉션에 데이터 추가
+    const historyRef = db.collection(`users/${userId}/history`).doc(`pillbox_${pillboxIndex}`);
+    await historyRef.set({
+      ...medication,
+      timesTaken: updatedTimesTaken, // 복용 횟수 업데이트
+      consumedAt: new Date().toISOString(), // 복용 완료 시간 기록
     });
 
+    // `currentMeds` 컬렉션에서 데이터 삭제
+    await medRef.delete();
+
     res.status(200).send({
-      message: "복용 완료 처리되었습니다.",
+      message: "복용 완료 처리되었습니다. 기록이 history로 이동되었습니다.",
       timesTaken: updatedTimesTaken,
     });
   } catch (error) {
@@ -111,6 +118,59 @@ app.post("/api/complete-medication", async (req, res) => {
     res.status(500).send("복용 완료 처리 중 오류가 발생했습니다.");
   }
 });
+
+app.get("/api/history", async (req, res) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).send("userId가 누락되었습니다.");
+  }
+
+  try {
+    // Firestore에서 history 컬렉션 데이터 가져오기
+    const historyRef = db.collection(`users/${userId}/history`);
+    const snapshot = await historyRef.get();
+
+    if (snapshot.empty) {
+      return res.status(404).send("복용 기록이 없습니다.");
+    }
+
+    const historyData = snapshot.docs.map(doc => ({
+      id: doc.id, // 문서 ID
+      ...doc.data(), // 문서 데이터
+    }));
+
+    res.status(200).json(historyData); // 복용 기록 반환
+  } catch (error) {
+    console.error("Error fetching history:", error);
+    res.status(500).send("복용 기록을 가져오는 중 오류가 발생했습니다.");
+  }
+});
+
+// 특정 복용 기록 약 정보 가져오기 API
+app.get("/api/history-medication", async (req, res) => {
+  const { userId, pillId } = req.query;
+
+  if (!userId || !pillId) {
+    return res.status(400).send("필수 필드가 누락되었습니다.");
+  }
+
+  try {
+    const pillRef = db.collection(`users/${userId}/history`).doc(pillId);
+    const pillSnap = await pillRef.get();
+
+    if (!pillSnap.exists) {
+      console.log(`Pill with ID ${pillId} not found for userId: ${userId}`);
+      return res.status(404).send("약 정보를 찾을 수 없습니다.");
+    }
+
+    res.status(200).json({ id: pillSnap.id, ...pillSnap.data() });
+  } catch (error) {
+    console.error("Error fetching medication:", error);
+    res.status(500).send("약 정보를 가져오는 중 오류가 발생했습니다.");
+  }
+});
+
 
 /**
  * 약 목록 가져오기 API
@@ -232,9 +292,8 @@ app.post("/api/notification-settings", async (req, res) => {
   }
 
   try {
-    const userRef = db
-      .collection('users/${userId}/NotificationSettings')
-      .doc(NotificationSettings)
+    // Firestore 경로 수정
+    const userRef = db.collection(`users/${userId}/NotificationSettings`).doc("NotificationSettings");
 
     // Update the settings in the NotificationSettings subcollection
     await userRef.set(
@@ -251,6 +310,7 @@ app.post("/api/notification-settings", async (req, res) => {
     res.status(500).send("Failed to update notification settings.");
   }
 });
+
 
 
 // 기본 서버 설정
