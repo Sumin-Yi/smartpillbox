@@ -100,8 +100,11 @@ app.post("/api/complete-medication", async (req, res) => {
     // `timesTaken` 값을 증가시키고 `isConsumed` 상태를 true로 설정
     const updatedTimesTaken = (medication.timesTaken || 0) + 1;
 
+    // 고유한 문서 이름 생성 (예: UUID 또는 현재 타임스탬프)
+    const uniqueDocId = `pillbox_${pillboxIndex}_${new Date().getTime()}`;
+    
     // `history` 컬렉션에 데이터 추가
-    const historyRef = db.collection(`users/${userId}/history`).doc(`pillbox_${pillboxIndex}`);
+    const historyRef = db.collection(`users/${userId}/history`).doc(uniqueDocId);
     await historyRef.set({
       ...medication,
       timesTaken: updatedTimesTaken, // 복용 횟수 업데이트
@@ -120,6 +123,7 @@ app.post("/api/complete-medication", async (req, res) => {
     res.status(500).send("복용 완료 처리 중 오류가 발생했습니다.");
   }
 });
+
 
 app.get("/api/history", async (req, res) => {
   const { userId } = req.query;
