@@ -2,6 +2,8 @@ import dotenv from "dotenv"; // 환경 변수 관리
 import express from "express"; // Express.js
 import { db } from "./lib/firebase.js"; // Firebase 초기화 코드
 import cors from "cors"; // CORS 설정
+import bodyParser from 'body-parser';
+
 
 dotenv.config(); // .env 파일 로드
 
@@ -311,6 +313,33 @@ app.post("/api/notification-settings", async (req, res) => {
   }
 });
 
+
+// 미들웨어 설정
+app.use(bodyParser.json());
+
+// LED 상태를 저장
+let ledState = "RED";
+
+// /ping 엔드포인트
+app.get('/ping', (req, res) => {
+  res.status(200).send('pong'); // "pong" 응답
+});
+
+// 라우트 설정
+app.post('/led-state', (req, res) => {
+  const { state } = req.body;
+
+  if (state) {
+    ledState = state; // LED 상태 업데이트
+    console.log(`LED State Updated: ${ledState}`);
+    res.status(200).send({ message: 'LED state updated successfully' });
+  } else {
+    res.status(400).send({ message: 'Invalid data' });
+  }
+});
+
+// led 상태 변경하는 메세지 보내기
+// app.post('/change-led-state',)
 
 
 // 기본 서버 설정
