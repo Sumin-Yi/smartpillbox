@@ -103,12 +103,20 @@ app.post("/api/complete-medication", async (req, res) => {
     // 고유한 문서 이름 생성 (예: UUID 또는 현재 타임스탬프)
     const uniqueDocId = `pillbox_${pillboxIndex}_${new Date().getTime()}`;
     
+    // Adjust date to KST (UTC+9)
+    const now = new Date();
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000; // Convert to UTC
+    const kst = new Date(utc + 9 * 3600000); // Add 9 hours for KST
+
+    // Format the date as "YYYY-MM-DD"
+    const formattedDate = `${kst.getFullYear()}-${String(kst.getMonth() + 1).padStart(2, '0')}-${String(kst.getDate()).padStart(2, '0')}`;
+    
     // `history` 컬렉션에 데이터 추가
     const historyRef = db.collection(`users/${userId}/history`).doc(uniqueDocId);
     await historyRef.set({
       ...medication,
       timesTaken: updatedTimesTaken, // 복용 횟수 업데이트
-      consumedAt: new Date().toISOString(), // 복용 완료 시간 기록
+      consumedAt: formattedDate, // 복용 완료 날짜 기록 (KST)
     });
 
     // `currentMeds` 컬렉션에서 데이터 삭제
@@ -123,6 +131,7 @@ app.post("/api/complete-medication", async (req, res) => {
     res.status(500).send("복용 완료 처리 중 오류가 발생했습니다.");
   }
 });
+
 
 
 app.get("/api/history", async (req, res) => {
@@ -252,13 +261,13 @@ app.post("/api/reset-consumption", async (req, res) => {
 });
 
 /**
- * 복용 횟수 증가 API
+ * 복용 횟수 변경 API
  * 사용자 대시보드에서 수동으로 복용 상태를 변경할 때 호출되는 API
  */
-app.post("/api/increment-times-taken", async (req, res) => {
-  const { userId, pillboxIndex } = req.body;
+app.post("/api/update-times-taken", async (req, res) => {
+  const { userId, pillboxIndex, change } = req.body;
 
-  if (!userId || !pillboxIndex) {
+  if (!userId || !pillboxIndex || !change) {
     return res.status(400).send("필수 필드가 누락되었습니다.");
   }
 
@@ -274,18 +283,33 @@ app.post("/api/increment-times-taken", async (req, res) => {
 
     const medication = medSnap.data();
 
-    const updatedTimesTaken = (medication.timesTaken || 0) + 1;
+    // Update timesTaken based on the `change` parameter
+    let updatedTimesTaken = medication.timesTaken || 0;
+    if (change === "increment") {
+      updatedTimesTaken += 1;
+    } else if (change === "decrement" && updatedTimesTaken > 0) {
+      updatedTimesTaken -= 1; // Prevent negative values
+    } else {
+      return res
+        .status(400)
+        .send("Invalid change parameter or timesTaken is already zero.");
+    }
 
     await medRef.update({
       timesTaken: updatedTimesTaken,
+      isConsumed: change === "increment", // Set isConsumed based on action
     });
 
-    res.status(200).send({ timesTaken: updatedTimesTaken });
+    res.status(200).send({
+      message: `복용 횟수 ${change} 처리되었습니다.`,
+      timesTaken: updatedTimesTaken,
+    });
   } catch (error) {
-    console.error("Error incrementing timesTaken:", error);
-    res.status(500).send("복용 횟수 증가 중 오류가 발생했습니다.");
+    console.error("Error updating timesTaken:", error);
+    res.status(500).send("복용 상태 업데이트 중 오류가 발생했습니다.");
   }
 });
+
 
 /**
  * 알림 설정 저장 API

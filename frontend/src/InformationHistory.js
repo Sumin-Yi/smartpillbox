@@ -63,7 +63,7 @@ const InformationHistory = () => {
         </div>
         <h2>{pill.name}</h2>
         <p>
-          <strong>복용 완료일:</strong> {pill.completedAt || "알 수 없음"}
+          <strong>복용 완료일:</strong> {pill.consumedAt || "알 수 없음"}
         </p>
         <p>
           <strong>복용 방법:</strong> {pill.instructions || "알 수 없음"}

@@ -123,6 +123,7 @@ const Home = () => {
         // If toggled to "pending", set isConsumed to false
         await updateDoc(pillRef, {
           isConsumed: false,
+          timesTaken: increment(-1)
         });
       }
 
@@ -170,9 +171,6 @@ const Home = () => {
             </li>
             <li className="menu-item" onClick={() => navigate("/history")}>
               🕒 복용 기록
-            </li>
-            <li className="menu-item">
-              🔍 약 검색
             </li>
           </ul>
 
