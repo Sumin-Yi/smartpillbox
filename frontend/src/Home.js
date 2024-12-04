@@ -6,6 +6,7 @@ import { db } from "./firebase"; // Firestore 초기화된 db 가져오기
 import { ReactComponent as PillIcon } from "./icons/pill.svg";
 import { ReactComponent as ProfileIcon } from "./icons/profile.svg";
 import { ReactComponent as MenuIcon } from "./icons/menu.svg";
+import { useRef } from "react";
 import pillboxIcon from "./icons/pillbox.svg";
 import "./Home.css";
 
@@ -17,6 +18,108 @@ const Home = () => {
     "empty", // 3번 약통
     "empty", // 4번 약통
   ]);
+  const [notifications, setNotifications] = useState([]);
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
+
+  const fetchNotificationsFromServer = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/notifications");
+      if (response.ok) {
+        const data = await response.json();
+
+        if (data.notifications.length > 0) {
+          // 새 알림이 있을 경우 상태 업데이트
+          setNotifications(data.notifications);
+
+          // 가장 첫 번째 알림을 팝업으로 표시
+          setPopupMessage(data.notifications[0].message);
+          setShowPopup(true);
+        }
+      } else {
+        console.error("Failed to fetch notifications:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  // 주기적으로 알림 조회
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchNotificationsFromServer();
+    }, 1000); // 1초 간격
+
+    return () => clearInterval(interval); // 컴포넌트 언마운트 시 정리
+  }, []);
+
+  // 팝업 닫기
+  const closePopup = () => {
+    setShowPopup(false);
+  };
+
+  const previousPillboxStatus = useRef(pillboxStatus); // 이전 상태를 추적
+  const [lastUpdated, setLastUpdated] = useState(0); // 서버에서 가져온 최신 타임스탬프
+
+  // 서버에서 상태 가져오기
+  const fetchPillboxStatusFromServer = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/status");
+      if (response.ok) {
+        const data = await response.json();
+
+        // 상태가 변경되었을 경우만 로컬 상태 업데이트
+        if (data.lastUpdated > lastUpdated) {
+          setPillboxStatus(data.status);
+          setLastUpdated(data.lastUpdated);
+        }
+      } else {
+        console.error("Failed to fetch status from server:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error fetching status from server:", error);
+    }
+  };
+
+  // 상태를 주기적으로 확인 (0.1초마다)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchPillboxStatusFromServer();
+    }, 100); // 0.1초
+
+    return () => clearInterval(interval); // 컴포넌트 언마운트 시 정리
+  }, [lastUpdated]); // 타임스탬프에 의존
+
+  const sendPillboxStatusToServer = async (updatedStatus) => {
+    try {
+      const response = await fetch("http://localhost:3000/api/updateStatus", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ pillboxStatus: updatedStatus }),
+      });
+
+      if (response.ok) {
+        console.log("Status updated successfully:", await response.json());
+      } else {
+        console.error("Failed to update status:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error sending status to server:", error);
+    }
+  };
+
+  // pillboxStatus가 변경될 때 상태 비교 후 서버로 전송
+  useEffect(() => {
+    if (
+      JSON.stringify(previousPillboxStatus.current) !==
+      JSON.stringify(pillboxStatus)
+    ) {
+      sendPillboxStatusToServer(pillboxStatus);
+      previousPillboxStatus.current = pillboxStatus; // 이전 상태 업데이트
+    }
+  }, [pillboxStatus]);
 
   const [userId, setUserId] = useState(null); // 로그인된 사용자 ID 상태
   const [menuOpen, setMenuOpen] = useState(false); // 메뉴 상태
@@ -83,6 +186,8 @@ const Home = () => {
 
     fetchData();
   }, [userId]); // userId로만 데이터 로드 트리거
+
+
 
   // Register 페이지로 약통 번호와 함께 이동
   const goToRegisterPage = (index) => {
@@ -160,6 +265,15 @@ const Home = () => {
           <MenuIcon className="icon" />
         </button>
       </header>
+      {/* 알림 팝업 */}
+      {showPopup && (
+        <div className="popup">
+          <div className="popup-content">
+            <p>{popupMessage}</p>
+            <button onClick={closePopup}>닫기</button>
+          </div>
+        </div>
+      )}
 
       {/* Slide-Out Menu */}
       {menuOpen && (
@@ -221,6 +335,8 @@ const Home = () => {
                   ? "red"
                   : status === "green"
                   ? "green"
+                  : status === "blue"
+                  ? "blue"
                   : "gray"
               }`}
             ></div>
@@ -230,6 +346,7 @@ const Home = () => {
           </div>
         ))}
       </div>
+
     </div>
   );
 };

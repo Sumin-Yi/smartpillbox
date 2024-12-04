@@ -97,7 +97,7 @@ app.post("/api/complete-medication", async (req, res) => {
 
     const medication = medSnap.data();
 
-    // `timesTaken` 값을 증가시키고 `isConsumed` 상태를 true로 설정
+    // `timesTaken` 값을 증가
     const updatedTimesTaken = (medication.timesTaken || 0) + 1;
 
     // 고유한 문서 이름 생성 (예: UUID 또는 현재 타임스탬프)
@@ -342,32 +342,97 @@ app.post("/api/notification-settings", async (req, res) => {
 });
 
 
-// 미들웨어 설정
-app.use(bodyParser.json());
+let status = ["empty", "empty", "empty", "empty"];
+let lastUpdated = Date.now(); // 상태가 마지막으로 변경된 시간
 
-// LED 상태를 저장
-let ledState = "RED";
+// 상태 업데이트 API (하드웨어에서 사용)
+app.post("/api/hardware/update", (req, res) => {
+  const { pillboxIndex, newStatus } = req.body;
 
-// /ping 엔드포인트
-app.get('/ping', (req, res) => {
-  res.status(200).send('pong'); // "pong" 응답
-});
-
-// 라우트 설정
-app.post('/led-state', (req, res) => {
-  const { state } = req.body;
-
-  if (state) {
-    ledState = state; // LED 상태 업데이트
-    console.log(`LED State Updated: ${ledState}`);
-    res.status(200).send({ message: 'LED state updated successfully' });
-  } else {
-    res.status(400).send({ message: 'Invalid data' });
+  // 유효성 검사
+  if (
+    typeof pillboxIndex !== "number" ||
+    pillboxIndex < 1 ||
+    pillboxIndex > 4 ||
+    !["empty", "green", "red"].includes(newStatus)
+  ) {
+    return res.status(400).json({ error: "Invalid input" });
   }
+
+  // 상태 변경 및 타임스탬프 갱신
+  status[pillboxIndex - 1] = newStatus;
+  lastUpdated = Date.now();
+  console.log(`Status updated by hardware: ${status}`);
+
+  res.json({ message: "Status updated successfully", status });
 });
 
-// led 상태 변경하는 메세지 보내기
-// app.post('/change-led-state',)
+// 상태 조회 API (클라이언트에서 사용)
+app.get("/api/status", (req, res) => {
+  res.json({ status, lastUpdated });
+});
+
+// 상태 업데이트 API
+app.post("/api/updateStatus", (req, res) => {
+  const { pillboxStatus } = req.body;
+
+  // 유효성 검사
+  if (!Array.isArray(pillboxStatus) || pillboxStatus.length !== 4) {
+    return res.status(400).json({ error: "Invalid status array" });
+  }
+
+  // 상태 업데이트
+  status = pillboxStatus;
+  console.log("Updated status:", status);
+
+  // 응답
+  res.json({ message: "Status updated successfully", status });
+});
+
+// 하드웨어 업데이트
+app.post("/api/hardware/update", (req, res) => {
+  const { pillboxIndex, newStatus } = req.body;
+
+  // 유효성 검사
+  if (
+    typeof pillboxIndex !== "number" ||
+    pillboxIndex < 1 ||
+    pillboxIndex > 4 ||
+    !["empty", "green", "red"].includes(newStatus)
+  ) {
+    return res.status(400).json({ error: "Invalid input" });
+  }
+
+  // 상태 업데이트
+  status[pillboxIndex - 1] = newStatus;
+  console.log(`Updated status (from hardware): ${status}`);
+
+  res.json({ message: "Status updated successfully", status });
+});
+
+let notifications = []; // 알림 저장소
+app.post("/api/notifications", (req, res) => {
+  const { message, pillboxIndex, timestamp } = req.body;
+
+  // 유효성 검사
+  if (!message || typeof message !== "string" || !timestamp) {
+    return res.status(400).json({ error: "Invalid notification data" });
+  }
+
+  // 알림 추가
+  notifications.push({ message, pillboxIndex, timestamp });
+  console.log(`New notification: ${message}`);
+
+  res.json({ message: "Notification received successfully" });
+});
+
+// 알림 조회 API (클라이언트에서 사용)
+app.get("/api/notifications", (req, res) => {
+  res.json({ notifications });
+
+  // 알림 전달 후 초기화 (단일 클라이언트 기준)
+  notifications = [];
+});
 
 
 // 기본 서버 설정
