@@ -412,15 +412,15 @@ app.post("/api/hardware/update", (req, res) => {
 
 let notifications = []; // 알림 저장소
 app.post("/api/notifications", (req, res) => {
-  const { message, pillboxIndex, timestamp } = req.body;
+  const { message} = req.body;
 
   // 유효성 검사
-  if (!message || typeof message !== "string" || !timestamp) {
+  if (!message || typeof message !== "string") {
     return res.status(400).json({ error: "Invalid notification data" });
   }
 
   // 알림 추가
-  notifications.push({ message, pillboxIndex, timestamp });
+  notifications.push({ message});
   console.log(`New notification: ${message}`);
 
   res.json({ message: "Notification received successfully" });
