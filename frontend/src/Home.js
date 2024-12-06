@@ -67,11 +67,15 @@ const Home = () => {
       const response = await fetch("http://localhost:3000/api/status");
       if (response.ok) {
         const data = await response.json();
-
+  
         // 상태가 변경되었을 경우만 로컬 상태 업데이트
         if (data.lastUpdated > lastUpdated) {
-          setPillboxStatus(data.status);
+          const updatedStatus = data.status;
+          setPillboxStatus(updatedStatus);
           setLastUpdated(data.lastUpdated);
+  
+          // DB 업데이트 로직 추가
+          await updatePillboxStatusInDb(updatedStatus);
         }
       } else {
         console.error("Failed to fetch status from server:", response.statusText);
@@ -80,6 +84,36 @@ const Home = () => {
       console.error("Error fetching status from server:", error);
     }
   };
+  
+  // Firestore에서 pillboxStatus를 업데이트
+  const updatePillboxStatusInDb = async (updatedStatus) => {
+    if (!userId) return; // 로그인 상태 확인
+  
+    try {
+      const promises = updatedStatus.map(async (status, index) => {
+        // pillbox index는 1부터 시작
+        const pillboxIndex = index + 1;
+  
+        // 해당 약통에 연결된 Firestore 문서 참조
+        const pillRef = doc(db, `users/${userId}/currentMeds`, `pillbox_${pillboxIndex}`);
+  
+        if (status === "green") {
+          // 상태가 green이면 isConsumed를 true로 업데이트
+          await updateDoc(pillRef, { isConsumed: true });
+        } else if (status === "red") {
+          // 상태가 red이면 isConsumed를 false로 업데이트
+          await updateDoc(pillRef, { isConsumed: false });
+        }
+      });
+  
+      // 모든 업데이트 작업 완료를 기다림
+      await Promise.all(promises);
+      console.log("Pillbox status updated in Firestore successfully.");
+    } catch (error) {
+      console.error("Error updating pillbox status in Firestore:", error);
+    }
+  };
+  
 
   // 상태를 주기적으로 확인 (0.1초마다)
   useEffect(() => {
