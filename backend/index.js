@@ -440,3 +440,17 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+
+app.get("/ping", (req, res) => {
+  console.log("Received ping from Arduino");
+  res.send("pong"); // Respond with "pong"
+});
+
+// Route to handle Arduino data
+app.get("/api/hardware/change-state", (req, res) => {
+  console.log("Data received from Arduino:", req.body);
+
+  // Respond back to Arduino
+  res.json({ state: status });
+});
