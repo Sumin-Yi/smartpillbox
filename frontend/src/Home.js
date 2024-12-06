@@ -277,19 +277,23 @@ const Home = () => {
 
       {/* Slide-Out Menu */}
       {menuOpen && (
-        <div className="menu">
-          <h2>메뉴</h2>
-          <ul className="menu-list">
-            <li className="menu-item" onClick={() => navigate("/notification")}>
-              ⚙️ 알림 설정
-            </li>
-            <li className="menu-item" onClick={() => navigate("/history")}>
-              🕒 복용 기록
-            </li>
-          </ul>
-
-        </div>
+        <>
+          <div className="overlay" onClick={toggleMenu}></div> {/* 배경 */}
+          <div className={`menu ${menuOpen ? "open" : "close"}`}>
+            <h2>메뉴</h2>
+            <ul className="menu-list">
+              <li className="menu-item" onClick={() => navigate("/notification")}>
+                ⚙️ 알림 설정
+              </li>
+              <li className="menu-item" onClick={() => navigate("/history")}>
+                🕒 복용 기록
+              </li>
+            </ul>
+          </div>
+        </>
       )}
+
+
 
       {/* Dashboard */}
       <main className="dashboard">
