@@ -123,7 +123,7 @@ app.post("/api/complete-medication", async (req, res) => {
     // `currentMeds` 컬렉션에서 데이터 삭제
     await medRef.delete();
 
-    status[pillboxIndex-1] = "complete"; //하드웨어로 복용완료 정보 전송
+    boxStatus[pillboxIndex-1] = "complete"; //하드웨어로 복용완료 정보 전송
 
     res.status(200).send({
       message: "복용 완료 처리되었습니다. 기록이 history로 이동되었습니다.",
@@ -345,11 +345,11 @@ app.post("/api/notification-settings", async (req, res) => {
 });
 
 
-let status = ["empty", "empty", "empty", "empty"];
+let boxStatus = ["empty", "empty", "empty", "empty"];
 let lastUpdated = Date.now(); // 상태가 마지막으로 변경된 시간
 
 // 상태 업데이트 API (하드웨어에서 사용)
-app.post("/api/hardware/update", (req, res) => {
+app.post("/api/hardware/new-intake", (req, res) => {
   const { pillboxIndex, newStatus } = req.body;
 
   // 유효성 검사
@@ -357,22 +357,22 @@ app.post("/api/hardware/update", (req, res) => {
     typeof pillboxIndex !== "number" ||
     pillboxIndex < 1 ||
     pillboxIndex > 4 ||
-    !["empty", "green", "red"].includes(newStatus)
+    !["green", "red"].includes(newStatus)
   ) {
     return res.status(400).json({ error: "Invalid input" });
   }
 
   // 상태 변경 및 타임스탬프 갱신
-  status[pillboxIndex - 1] = newStatus;
+  boxStatus[pillboxIndex - 1] = newStatus;
   lastUpdated = Date.now();
-  console.log(`Status updated by hardware: ${status}`);
+  console.log(`Status updated by hardware: ${boxStatus}`);
 
-  res.json({ message: "Status updated successfully", status });
+  res.json({ message: "Status updated successfully", status: boxStatus });
 });
 
 // 상태 조회 API (클라이언트에서 사용)
 app.get("/api/status", (req, res) => {
-  res.json({ status, lastUpdated });
+  res.json({ status: boxStatus, lastUpdated });
 });
 
 // 상태 업데이트 API
@@ -385,11 +385,11 @@ app.post("/api/updateStatus", (req, res) => {
   }
 
   // 상태 업데이트
-  status = pillboxStatus;
-  console.log("Updated status:", status);
+  boxStatus = pillboxStatus;
+  console.log("Updated status:", boxStatus);
 
   // 응답
-  res.json({ message: "Status updated successfully", status });
+  res.json({ message: "Status updated successfully", status: boxStatus });
 });
 
 // 하드웨어 업데이트
@@ -407,14 +407,14 @@ app.post("/api/hardware/update", async (req, res) => {
   }
 
   // 상태 업데이트
-  status[pillboxIndex - 1] = newStatus;
-  console.log(`Updated status (from hardware): ${status}`);
+  boxStatus[pillboxIndex - 1] = newStatus;
+  console.log(`Updated status (from hardware): ${boxStatus}`);
 
-  res.json({ message: "Status updated successfully", status });
+  res.json({ message: "Status updated successfully", status: boxStatus });
 });
 
 let notifications = []; // 알림 저장소
-app.post("/api/notifications", async (req, res) => {
+app.post("/api/hardware/notifications", async (req, res) => {
   const { message} = req.body;
 
   // 유효성 검사
@@ -455,5 +455,5 @@ app.get("/api/hardware/change-state", (req, res) => {
   console.log("Data received from Arduino:", req.body);
 
   // Respond back to Arduino
-  res.json({ state: status });
+  res.json({ state: boxStatus });
 });
