@@ -78,6 +78,7 @@ app.get("/api/medication", async (req, res) => {
  * 복용 완료 처리 API
  * 사용자가 약을 복용 완료했을 때 호출되는 API
  */
+// TODO(동훈): status를 "complete"로 바꾸기
 app.post("/api/complete-medication", async (req, res) => {
   const { userId, pillboxIndex } = req.body;
 
@@ -121,6 +122,8 @@ app.post("/api/complete-medication", async (req, res) => {
 
     // `currentMeds` 컬렉션에서 데이터 삭제
     await medRef.delete();
+
+    status[pillboxIndex-1] = "complete"; //하드웨어로 복용완료 정보 전송
 
     res.status(200).send({
       message: "복용 완료 처리되었습니다. 기록이 history로 이동되었습니다.",
@@ -390,7 +393,7 @@ app.post("/api/updateStatus", (req, res) => {
 });
 
 // 하드웨어 업데이트
-app.post("/api/hardware/update", (req, res) => {
+app.post("/api/hardware/update", async (req, res) => {
   const { pillboxIndex, newStatus } = req.body;
 
   // 유효성 검사
@@ -411,7 +414,7 @@ app.post("/api/hardware/update", (req, res) => {
 });
 
 let notifications = []; // 알림 저장소
-app.post("/api/notifications", (req, res) => {
+app.post("/api/notifications", async (req, res) => {
   const { message} = req.body;
 
   // 유효성 검사
@@ -427,7 +430,7 @@ app.post("/api/notifications", (req, res) => {
 });
 
 // 알림 조회 API (클라이언트에서 사용)
-app.get("/api/notifications", (req, res) => {
+app.get("/api/notifications", async (req, res) => {
   res.json({ notifications });
 
   // 알림 전달 후 초기화 (단일 클라이언트 기준)
