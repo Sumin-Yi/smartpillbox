@@ -303,7 +303,7 @@ const Home = () => {
       {showPopup && (
         <div className="popup">
           <div className="popup-content">
-            <p>{popupMessage}</p>
+            <p>Alert: The pillbox lid is open!</p>
             <button onClick={closePopup}>닫기</button>
           </div>
         </div>
