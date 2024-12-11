@@ -18,6 +18,12 @@ const Home = () => {
     "empty", // 3번 약통
     "empty", // 4번 약통
   ]);
+
+  const [message, setMessage] = useState(true);
+  const closeMessage = () => {
+    setMessage(false); // 닫기 버튼 클릭 시 상태를 false로 변경
+  };
+
   const [notifications, setNotifications] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
@@ -300,11 +306,18 @@ const Home = () => {
         </button>
       </header>
       {/* 알림 팝업 */}
+      {message && (
+        <div className="popup">
+          <div className="popup-content">
+            <p>Time to take your medications!</p>
+            <button onClick={closeMessage}>닫기</button>
+          </div>
+        </div>
+      )}
       {showPopup && (
         <div className="popup">
           <div className="popup-content">
             <p>Alert: The pillbox lid is open!</p>
-            <button onClick={closePopup}>닫기</button>
           </div>
         </div>
       )}
