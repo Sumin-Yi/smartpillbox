@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // 페이지 이동을 위한 훅
 import { getAuth } from "firebase/auth"; // Firebase Auth
+import { ReactComponent as BackIcon } from "./icons/back-filled.svg";
+
 import './History.css';
 
 const History = () => {
@@ -10,6 +12,8 @@ const History = () => {
   const [completedMeds, setCompletedMeds] = useState([]); // 복용 완료된 약 정보
   const [loading, setLoading] = useState(true); // 로딩 상태
   const [error, setError] = useState(null); // 에러 상태
+  const [menuOpen, setMenuOpen] = useState(false); // Menu state
+
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -49,6 +53,15 @@ const History = () => {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
+  const goToHomePage = () => {
+    navigate("/"); // Go to home page
+  };
+
+  // Toggle menu visibility
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+
   // 이름 정렬
   const sortedMeds = completedMeds.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -56,11 +69,15 @@ const History = () => {
     <div className="history-page">
       {/* Header */}
       <header className="header">
-        <button className="icon-button" onClick={() => navigate(-1)}>
-          &lt; Back
+        <button className="back-button" onClick={goToHomePage}>
+          <BackIcon></BackIcon>
         </button>
-        <h1 className="logo">복용 기록</h1>
+        <h1 className="logo" onClick={goToHomePage}>
+          Smart Pillbox
+        </h1>
       </header>
+
+      <h2 className="page-title">복용 기록</h2>
 
       {/* Completed Medication List */}
       <main className="history-content">

@@ -25,18 +25,30 @@ html, body {
 /* Header Styling */
 .header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    background-color: white;
+    position: relative;
     padding: 10px 20px;
+    background-color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.logo {
+  }
+  
+  .back-button {
+    position: absolute;
+    left: 20px; /* 버튼의 위치를 header 왼쪽에 고정 */
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+  
+  .logo {
+    flex: 1; /* 가운데 정렬을 위한 유연한 공간 할당 */
+    text-align: center;
     font-size: 1.5rem;
     font-weight: bold;
     cursor: pointer;
-}
+  }
+  
 
 .icon-button {
     background: none;
@@ -197,3 +209,5 @@ input:checked + .slider:before {
         align-items: stretch;
     }
 }
+
+

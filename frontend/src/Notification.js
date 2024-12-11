@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { db } from "./firebase";
 import { updateDoc, doc, getDoc } from "firebase/firestore";
-import { ReactComponent as ProfileIcon } from "./icons/profile.svg";
-import { ReactComponent as MenuIcon } from "./icons/menu.svg";
+import { ReactComponent as BackIcon } from "./icons/back-filled.svg";
 import "./Notification.css";
 
 const Notification = () => {
@@ -122,29 +121,14 @@ const Notification = () => {
     <div className="notification-page">
       {/* Header */}
       <header className="header">
-        <button className="icon-button" onClick={() => navigate("/profile")}>
-          <ProfileIcon className="icon" />
+        <button className="back-button" onClick={goToHomePage}>
+          <BackIcon></BackIcon>
         </button>
         <h1 className="logo" onClick={goToHomePage}>
           Smart Pillbox
         </h1>
-        <button className="icon-button" onClick={toggleMenu}>
-          <MenuIcon className="icon" />
-        </button>
       </header>
 
-      {/* Slide-Out Menu */}
-      {menuOpen && (
-        <div className="menu">
-          <h2>메뉴</h2>
-          <ul className="menu-list">
-            <li className="menu-item" onClick={() => navigate("/history")}>
-              🕒 복용 기록
-            </li>
-            <li className="menu-item">🔍 약 검색</li>
-          </ul>
-        </div>
-      )}
 
       <h2 className="page-title">알림 설정</h2>
 
