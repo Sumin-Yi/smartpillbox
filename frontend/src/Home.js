@@ -33,14 +33,17 @@ const Home = () => {
       const response = await fetch("http://localhost:3000/api/notifications");
       if (response.ok) {
         const data = await response.json();
-
+  
         if (data.notifications.length > 0) {
           // 새 알림이 있을 경우 상태 업데이트
           setNotifications(data.notifications);
-
+  
           // 가장 첫 번째 알림을 팝업으로 표시
           setPopupMessage(data.notifications[0].message);
           setShowPopup(true);
+        } else {
+          // 알림이 없으면 팝업 닫기
+          setShowPopup(false);
         }
       } else {
         console.error("Failed to fetch notifications:", response.statusText);
@@ -49,6 +52,7 @@ const Home = () => {
       console.error("Error fetching notifications:", error);
     }
   };
+  
 
   // 주기적으로 알림 조회
   useEffect(() => {
@@ -361,7 +365,7 @@ const Home = () => {
         <div className="popup">
           <div className="popup-content">
             <p>Alert: The pillbox lid is open!</p>
-          </div>
+          </div>s
         </div>
       )}
 
