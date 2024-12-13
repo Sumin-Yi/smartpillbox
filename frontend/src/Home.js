@@ -292,6 +292,48 @@ const Home = () => {
   const toggleEditMode = () => {
     setIsEditing(!isEditing);
   };
+  useEffect(() => {
+    if (!userId) return; // 로그인되지 않은 상태에서는 실행하지 않음
+  
+    const fetchData = async () => {
+      try {
+        const q = query(collection(db, `users/${userId}/currentMeds`), limit(4));
+        const querySnapshot = await getDocs(q);
+  
+        const medications = [];
+        const newPillboxStatus = Array(4).fill("empty");
+  
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          medications.push({
+            name: data.name,
+            status: data.isConsumed ? "taken" : "pending",
+            pillboxIndex: data.pillboxIndex,
+          });
+  
+          newPillboxStatus[data.pillboxIndex - 1] = data.isConsumed
+            ? "green"
+            : "red";
+        });
+  
+        medications.sort((a, b) => a.pillboxIndex - b.pillboxIndex);
+  
+        // 상태 업데이트
+        setPills(medications);
+        setPillboxStatus(newPillboxStatus);
+      } catch (error) {
+        console.error("Error fetching medications:", error);
+      }
+    };
+  
+    // 1초마다 데이터를 가져오기
+    const interval = setInterval(() => {
+      fetchData();
+    }, 1000); // 1초 간격
+  
+    return () => clearInterval(interval); // 컴포넌트 언마운트 시 정리
+  }, [userId]);
+  
 
   return (
     <div className="home">
